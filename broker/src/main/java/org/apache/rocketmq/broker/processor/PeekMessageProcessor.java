@@ -144,7 +144,7 @@ public class PeekMessageProcessor implements NettyRequestProcessor {
             restNum = peekMsgFromQueue(false, getMessageResult, requestHeader, queueId, restNum, reviveQid, channel, popTime);
         }
         // if not full , fetch retry again
-        if (!needRetry && getMessageResult.getMessageMapedList().size() < requestHeader.getMaxMsgNums()) {
+        if (!needRetry && getMessageResult.getMessageMappedList().size() < requestHeader.getMaxMsgNums()) {
             TopicConfig retryTopicConfig = this.brokerController.getTopicConfigManager().selectTopicConfig(KeyBuilder.buildPopRetryTopic(requestHeader.getTopic(), requestHeader.getConsumerGroup()));
             if (retryTopicConfig != null) {
                 for (int i = 0; i < retryTopicConfig.getReadQueueNums(); i++) {
@@ -215,19 +215,19 @@ public class PeekMessageProcessor implements NettyRequestProcessor {
         GetMessageResult getMessageTmpResult;
         long offset = getPopOffset(topic, requestHeader.getConsumerGroup(), queueId);
         restNum = this.brokerController.getMessageStore().getMaxOffsetInQueue(topic, queueId) - offset + restNum;
-        if (getMessageResult.getMessageMapedList().size() >= requestHeader.getMaxMsgNums()) {
+        if (getMessageResult.getMessageMappedList().size() >= requestHeader.getMaxMsgNums()) {
             return restNum;
         }
         getMessageTmpResult = this.brokerController.getMessageStore().getMessage(requestHeader.getConsumerGroup(), topic, queueId, offset,
-            requestHeader.getMaxMsgNums() - getMessageResult.getMessageMapedList().size(), null);
+            requestHeader.getMaxMsgNums() - getMessageResult.getMessageMappedList().size(), null);
         // maybe store offset is not correct.
         if (GetMessageStatus.OFFSET_TOO_SMALL.equals(getMessageTmpResult.getStatus()) || GetMessageStatus.OFFSET_OVERFLOW_BADLY.equals(getMessageTmpResult.getStatus())) {
             offset = getMessageTmpResult.getNextBeginOffset();
             getMessageTmpResult = this.brokerController.getMessageStore().getMessage(requestHeader.getConsumerGroup(), topic, queueId, offset,
-                requestHeader.getMaxMsgNums() - getMessageResult.getMessageMapedList().size(), null);
+                requestHeader.getMaxMsgNums() - getMessageResult.getMessageMappedList().size(), null);
         }
         if (getMessageTmpResult != null) {
-            for (SelectMappedBufferResult mapedBuffer : getMessageTmpResult.getMessageMapedList()) {
+            for (SelectMappedBufferResult mapedBuffer : getMessageTmpResult.getMessageMappedList()) {
                 getMessageResult.addMessage(mapedBuffer);
             }
         }
